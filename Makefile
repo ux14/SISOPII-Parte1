@@ -1,10 +1,9 @@
-all: cliente servidor
+all: app server
 
-cliente:
-	g++ ./cliente/*.cpp -o ./bin/cliente -Wall -pthread
+app:
+	g++ ./app/*.cpp -o ./bin/app -Wall -pthread
 
-servidor:
-	g++ ./servidor/*.cpp -o ./bin/servidor -Wall -pthread
+server:
+	g++ ./server/*.cpp -o ./bin/server -Wall -pthread
 
-.PHONY: cliente
-.PHONY: servidor
+.PHONY: app server
