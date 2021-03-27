@@ -34,6 +34,8 @@ vector<string> getUsers()
     char user[USERNAME_MAX_SIZE];
     FILE *arq;
     arq = fopen("server/files/users.txt", "rt");
+    if (arq==NULL) return users;
+
     while (fgets(user, USERNAME_MAX_SIZE, arq) != NULL)
     {
         //remove \n

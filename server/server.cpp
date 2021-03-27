@@ -12,6 +12,7 @@
 #include <pthread.h>
 
 #include <bits/stdc++.h>
+#include "files.h"
 
 #define PORT 4000
 
@@ -27,6 +28,7 @@ struct socketUser
 };
 
 vector<struct socketUser> sessions;
+vector<string> users;
 
 int isLoggedIn(string username)
 {
@@ -43,11 +45,12 @@ int isLoggedIn(string username)
 
 bool userExists(string username)
 {
-	return true;
+	return find(users.begin(), users.end(), username)!=users.end();
 }
 
 bool login(string username)
 {
+	users=getUsers();
 	if (userExists(username))
 	{
 		if (isLoggedIn(username) >= 2)
@@ -63,8 +66,14 @@ bool login(string username)
 	}
 	else
 	{
-		return true; //createUser(username);
+		createUser(username);
+		return true; 
 	}
+}
+
+string getUserName(string loginMessage){
+	cout<<loginMessage.substr(6)<<endl;
+	return loginMessage.substr(6);
 }
 
 int main(int argc, char *argv[])
@@ -131,10 +140,11 @@ void *routine(void *arg)
 	n = read(newsockfd, buffer, 256);
 	string user = string(buffer);
 	cout << user << endl;
+	user = getUserName(user);
 	if (login(user))
 	{
 		//Atrelar socket ao usuário
-		cout << sessions.size() << endl;
+		//cout << sessions.size() << endl;
 		for (int i = 0; i < sessions.size(); i++)
 		{
 			if (sessions[i].socketId == newsockfd)
@@ -154,7 +164,7 @@ void *routine(void *arg)
 				printf("ERROR reading from socket");
 				break;
 			}
-			cout << string(buffer).c_str() << endl;
+			//cout << string(buffer).c_str() << endl;
 
 			string msg = "SEND##mensagem teste##test_user";
 
