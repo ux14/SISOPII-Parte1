@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#define USERNAME_MAX_SIZE 30
 
 using namespace std;
 
@@ -30,10 +31,10 @@ void follow(string follower, string followed)
 vector<string> getUsers()
 {
     vector<string> users;
-    char user[30];
+    char user[USERNAME_MAX_SIZE];
     FILE *arq;
     arq = fopen("server/files/users.txt", "rt");
-    while (fgets(user, 30, arq) != NULL)
+    while (fgets(user, USERNAME_MAX_SIZE, arq) != NULL)
     {
         //remove \n
         *remove(user, user + strlen(user), '\n') = '\0';
@@ -46,12 +47,12 @@ vector<string> getUsers()
 vector<string> getFollowers(string username)
 {
     vector<string> followers;
-    char follower[30];
+    char follower[USERNAME_MAX_SIZE];
     string followersArqDir = "server/files/followers/" + username + ".txt";
 
     FILE *arq;
     arq = fopen(followersArqDir.c_str(), "rt");
-    while (fgets(follower, 30, arq) != NULL)
+    while (fgets(follower, USERNAME_MAX_SIZE, arq) != NULL)
     {
         //remove \n
         *remove(follower, follower + strlen(follower), '\n') = '\0';
