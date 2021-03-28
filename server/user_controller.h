@@ -1,0 +1,22 @@
+#ifndef USER_CONTROLLER_H
+#define USER_CONTROLLER_H
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+class UserController
+{
+private:
+    vector<string> users;
+    vector<struct socketUser> *sessions;
+    int isLoggedIn(string username);
+
+public:
+    UserController(vector<struct socketUser> *_sessions);
+    bool login(string username);
+    bool userExists(string username);
+    bool follow(string user, string followed);
+};
+
+#endif
