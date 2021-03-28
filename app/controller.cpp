@@ -25,6 +25,8 @@ void Controller::ParseUserInput()
     smatch match;
     string input;
 
+    sendMessage->push(Message("LOGIN",username, username));
+
     while (true)
     {
         input = userInput->pop();
