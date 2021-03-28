@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <signal.h>
 #include "message.h"
 #include "safe_queue.h"
 

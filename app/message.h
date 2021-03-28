@@ -19,6 +19,12 @@ public:
         this->payload = payload;
         this->username = username;
     }
+
+    Message(string type, string payload)
+    {
+        this->type = type;
+        this->payload = payload;
+    }
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <signal.h>
 
 #include "message.h"
 #include "validation.h"
@@ -11,7 +12,16 @@
 
 using namespace std;
 
-void validateInputs(string username, string server_ip, string port);
+int exit_signal;
+mutex exit_mutex;
+condition_variable exit_cv;
+
+void signalHandler(int sig)
+{
+    unique_lock<mutex> lock(exit_mutex);
+    exit_signal = 1;
+    exit_cv.notify_one();
+}
 
 int main(int argc, char *argv[])
 {
@@ -21,6 +31,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    signal(SIGINT, signalHandler);
+
     string username = argv[1];
     string server_ip = argv[2];
     string port = argv[3];
@@ -29,10 +41,15 @@ int main(int argc, char *argv[])
 
     SafeQueue<Message> sendMessage, printMessage;
     SafeQueue<string> receivedMessage, userInput;
-    Interface(&userInput, &printMessage);
 
+    Interface(&userInput, &printMessage);
     Controller(username, &sendMessage, &printMessage, &receivedMessage, &userInput);
-    Connection(server_ip, stoi(port), &sendMessage, &receivedMessage);
+    Connection *connection = new Connection(server_ip, stoi(port), &sendMessage, &receivedMessage);
+
+    unique_lock<mutex> lock(exit_mutex);
+    exit_cv.wait(lock, [&] { return exit_signal == 1; });
+
+    delete connection;
 
     return 0;
 }

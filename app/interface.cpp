@@ -1,5 +1,7 @@
 #include "interface.h"
 
+#define BUFFER_SIZE 256
+
 Interface::Interface(SafeQueue<string> *_userInput, SafeQueue<Message> *_printMessage)
 {
     printMessage = _printMessage;
@@ -14,13 +16,20 @@ Interface::Interface(SafeQueue<string> *_userInput, SafeQueue<Message> *_printMe
 
 void Interface::GetInput()
 {
-    char inp[160];
+    char inp[BUFFER_SIZE];
 
     while (true)
     {
-        cout << "> ";
-        fgets(inp, 155, stdin);
-        userInput->push(inp);
+        fgets(inp, BUFFER_SIZE - 1, stdin);
+
+        if (feof(stdin))
+        {
+            raise(SIGINT);
+        }
+        else
+        {
+            userInput->push(inp);
+        }
     }
 }
 
@@ -29,6 +38,15 @@ void Interface::PrintMessage()
     while (true)
     {
         Message message = printMessage->pop();
-        cout << "[" + message.username + "] " + message.payload << endl;
+
+        if (message.type == "SEND")
+        {
+            cout << "[" + message.username + "] " + message.payload << endl;
+        };
+
+        if (message.type == "ERROR")
+        {
+            cout << "SERVER ERROR: " + message.payload << endl;
+        };
     }
 }

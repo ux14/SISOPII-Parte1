@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,7 +14,6 @@
 #include <unistd.h>
 #include "message.h"
 #include "safe_queue.h"
-#include <strings.h>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ private:
 
     void Connect(string server_ip, int port);
     void ReceiveMessages();
+    void SendMessage(string message);
     void SendMessages();
 
 public:
