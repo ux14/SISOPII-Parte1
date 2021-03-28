@@ -12,7 +12,8 @@
 #include <pthread.h>
 
 #include <bits/stdc++.h>
-#include "files.h"
+#include "socketUser.h"
+#include "login.h"
 
 #define PORT 4000
 
@@ -20,60 +21,18 @@ using namespace std;
 
 void *routine(void *);
 
-struct socketUser
-{
-	int socketId;
-	string user;
-	pthread_t thread;
-};
-
 vector<struct socketUser> sessions;
-vector<string> users;
 
-int isLoggedIn(string username)
+string getCommand(string message)
 {
-	int cont = 0;
-	for (int i = 0; i < sessions.size(); i++)
-	{
-		if (sessions[i].user == username)
-		{
-			cont++;
-		}
-	}
-	return cont;
+	int position = message.find("|");
+	return message.substr(0, position);
 }
 
-bool userExists(string username)
+string getMessage(string message)
 {
-	return find(users.begin(), users.end(), username)!=users.end();
-}
-
-bool login(string username)
-{
-	users=getUsers();
-	if (userExists(username))
-	{
-		if (isLoggedIn(username) >= 2)
-		{
-			//Usuário com duas sessões abertas
-			return false;
-		}
-		else
-		{
-			//Permissão para logar concedida
-			return true;
-		}
-	}
-	else
-	{
-		createUser(username);
-		return true; 
-	}
-}
-
-string getUserName(string loginMessage){
-	cout<<loginMessage.substr(6)<<endl;
-	return loginMessage.substr(6);
+	int position = message.find("|");
+	return message.substr(position + 1);
 }
 
 int main(int argc, char *argv[])
@@ -140,8 +99,10 @@ void *routine(void *arg)
 	n = read(newsockfd, buffer, 256);
 	string user = string(buffer);
 	cout << user << endl;
-	user = getUserName(user);
-	if (login(user))
+	user = getMessage(user);
+	Login l(&sessions);
+
+	if (l.login(user))
 	{
 		//Atrelar socket ao usuário
 		//cout << sessions.size() << endl;
@@ -156,6 +117,7 @@ void *routine(void *arg)
 
 		while (1)
 		{
+			bzero(buffer, 256);
 			/* read from the socket */
 			n = read(newsockfd, buffer, 256);
 			if (n < 0)
@@ -164,7 +126,20 @@ void *routine(void *arg)
 				printf("ERROR reading from socket");
 				break;
 			}
-			//cout << string(buffer).c_str() << endl;
+			string command = getCommand(string(buffer));
+			string message = getMessage(string(buffer));
+			if (command == "SEND")
+			{
+				//Acontence algo com as mensagens
+			}
+			else if (command == "FOLLOW")
+			{
+				cout << "Seguindo " << message << endl;
+			}
+			else if (command == "LOGOUT")
+			{
+				break;
+			}			
 
 			string msg = "SEND##mensagem teste##test_user";
 
