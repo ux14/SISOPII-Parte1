@@ -6,7 +6,7 @@
 UserController::UserController(vector<struct socketUser> *_sessions)
 {
     sessions = _sessions;
-    users = getUsers();
+    users = filesAccess.getUsers();
 }
 
 int UserController::isLoggedIn(string username)
@@ -29,7 +29,6 @@ bool UserController::userExists(string username)
 
 bool UserController::login(string username)
 {
-
     if (userExists(username))
     {
         if (isLoggedIn(username) >= 2)
@@ -45,7 +44,7 @@ bool UserController::login(string username)
     }
     else
     {
-        createUser(username);
+        filesAccess.createUser(username);
         users.push_back(username);
         return true;
     }
@@ -55,7 +54,7 @@ bool UserController::follow(string user, string followed)
 {
     if (userExists(followed) && user != followed)
     {
-        addFollower(user, followed);
+       filesAccess.addFollower(user, followed);
         return true;
     }
     else
@@ -63,3 +62,4 @@ bool UserController::follow(string user, string followed)
         return false;
     }
 }
+
