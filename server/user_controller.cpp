@@ -3,18 +3,17 @@
 #include "user_controller.h"
 #include "socketUser.h"
 
-UserController::UserController(vector<struct socketUser> *_sessions)
+UserController::UserController()
 {
-    sessions = _sessions;
     users = filesAccess.getUsers();
 }
 
 int UserController::isLoggedIn(string username)
 {
     int cont = 0;
-    for (int i = 0; i < (*sessions).size(); i++)
+    for (int i = 0; i < (int)sessions.size(); i++)
     {
-        if ((*sessions)[i].user == username)
+        if (sessions[i].user == username)
         {
             cont++;
         }
@@ -61,6 +60,11 @@ bool UserController::follow(string user, string followed)
     {
         return false;
     }
+}
+
+void UserController::registerSession(socketUser usuario)
+{
+    sessions.push_back(usuario);
 }
 
 vector<string> UserController::listFollowers(string username){

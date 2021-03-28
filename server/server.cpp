@@ -9,19 +9,19 @@
 #include <netdb.h>
 
 #include <errno.h>
+#include <thread>
 #include <pthread.h>
 
 #include <bits/stdc++.h>
 #include "socketUser.h"
 #include "user_controller.h"
+#include "notification_controller.h"
 
 #define PORT 4000
 
 using namespace std;
 
-void *routine(void *);
-
-vector<struct socketUser> sessions;
+void read_job(int fd, user_t user, UserController *user_controller, NotificationController *notification_controller);
 
 string getCommand(string message)
 {
@@ -37,7 +37,6 @@ string getMessage(string message)
 
 int main(int argc, char *argv[])
 {
-	int *sock;
 	int sockfd, newsockfd;
 	socklen_t clilen;
 	struct sockaddr_in serv_addr, cli_addr;
@@ -57,7 +56,12 @@ int main(int argc, char *argv[])
 
 	clilen = sizeof(struct sockaddr_in);
 
-	pthread_t thr;
+	UserController user_controller;
+	NotificationController notification_controller(&user_controller);
+	
+	std::thread producer(&NotificationController::producerThread,&notification_controller);
+	producer.detach();
+
 	while (1)
 	{
 
@@ -65,17 +69,35 @@ int main(int argc, char *argv[])
 			printf("ERROR on accept");
 		else
 		{
-			sock = (int *)malloc(sizeof(int));
-			*sock = newsockfd;
-			pthread_create(&thr, NULL, &routine, (void *)sock);
+				int n;
+				char buffer[256];
 
-			struct socketUser usuario;
-			usuario.socketId = newsockfd;
-			usuario.thread = thr;
-			usuario.user = "";
+				bzero(buffer, 256);
 
-			sessions.push_back(usuario);
-			cout << "Session size " << sessions.size() << endl;
+				//Receber dados login
+				n = read(newsockfd, buffer, 256);
+				string user = string(buffer);
+				cout << user << endl;
+				user = getMessage(user);
+
+				if (user_controller.login(user))
+				{
+					std::thread reader(&read_job,newsockfd,user,&user_controller,&notification_controller);
+					reader.detach();
+
+					struct socketUser usuario;
+					usuario.socketId = newsockfd;
+					usuario.user = user;
+
+					user_controller.registerSession(usuario);
+
+					std::thread consumer(&NotificationController::consumerThread,&notification_controller,user);
+					consumer.detach();
+				}
+				else
+				{
+					//logout por ter mais de 2 sessões
+				}
 		}
 	}
 
@@ -83,77 +105,47 @@ int main(int argc, char *argv[])
 	exit(1);
 }
 
-void *routine(void *arg)
+void read_job(int sockfd, user_t user, UserController *user_controller, NotificationController *notification_controller)
 {
-	int newsockfd = *(int *)arg;
-	free(arg);
-
-	printf("%d\n", newsockfd);
-
-	int n;
 	char buffer[256];
-
 	bzero(buffer, 256);
 
-	//Receber dados login
-	n = read(newsockfd, buffer, 256);
-	string user = string(buffer);
-	cout << user << endl;
-	user = getMessage(user);
-	UserController userController(&sessions);
+	int n;
 
-	if (userController.login(user))
+	while(1)
 	{
-		//Atrelar socket ao usuário
-		//cout << sessions.size() << endl;
-		for (int i = 0; i < sessions.size(); i++)
+		/* read from the socket */
+		n = read(sockfd, buffer, 256);
+		if (n <= 0)
 		{
-			if (sessions[i].socketId == newsockfd)
-			{
-				sessions[i].user = user;
-				break;
-			}
+			if(n < 0)
+				printf("ERROR reading from socket\n");
+			close(sockfd);
+			break;
 		}
 
-		while (1)
+		string command = getCommand(string(buffer));
+		string message = getMessage(string(buffer));
+
+		cout << "comando: " << command << ' ' << "mensagem: "<< message << '\n';
+		if (command == "SEND")
 		{
-			bzero(buffer, 256);
-			/* read from the socket */
-			n = read(newsockfd, buffer, 256);
-			if (n < 0)
-			{
-
-				printf("ERROR reading from socket");
-				break;
-			}
-			string command = getCommand(string(buffer));
-			string message = getMessage(string(buffer));
-			if (command == "SEND")
-			{
-				//Acontence algo com as mensagens
-			}
-			else if (command == "FOLLOW")
-			{
-				userController.follow(user, message);
-			}
-			else if (command == "LOGOUT")
-			{
-				break;
-			}			
-
-			string msg = "SEND##mensagem teste##test_user";
-
-			n = write(newsockfd, msg.c_str(), msg.length());
-			if (n < 0)
-			{
-				printf("ERROR writing to socket");
-				break;
-			}
-
-			if (buffer[0] == 'a')
-				break;
+			notification n;
+			std::copy(message.begin(), message.end(), n.msg);
+			n.length = message.length();
+			//Acontence algo com as mensagens
+			notification_controller->producerQueue.push(std::make_pair(user,n));
 		}
+		else if (command == "FOLLOW")
+		{
+			user_controller->follow(user, message);
+		}
+		else if (command == "LOGOUT")
+		{
+			close(sockfd);
+			break;
+		}
+
+		printf("Here is the message: %s\n", buffer);
 	}
-	close(newsockfd);
-	pthread_exit((void *)1);
 }

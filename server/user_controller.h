@@ -11,14 +11,15 @@ class UserController
 private:
     Files filesAccess;
     vector<string> users;
-    vector<struct socketUser> *sessions;
+    vector<struct socketUser> sessions;
     int isLoggedIn(string username);
 
 public:
-    UserController(vector<struct socketUser> *_sessions);
+    UserController();
     bool login(string username);
     bool userExists(string username);
     bool follow(string user, string followed);
+    void registerSession(socketUser usuario);
     vector<string> listFollowers(string username);
 };
 

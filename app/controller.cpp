@@ -1,6 +1,6 @@
 #include "controller.h"
 
-using namespace std;
+#define PAYLOAD_SIZE 128
 
 Controller::Controller(string _username, SafeQueue<Message> *_sendMessage, SafeQueue<Message> *_printMessage, SafeQueue<string> *_receivedMessage, SafeQueue<string> *_userInput)
 {
@@ -9,6 +9,8 @@ Controller::Controller(string _username, SafeQueue<Message> *_sendMessage, SafeQ
     printMessage = _printMessage;
     receivedMessage = _receivedMessage;
     userInput = _userInput;
+
+    sendMessage->push(Message("LOGIN", username));
 
     thread input(&Controller::ParseUserInput, this);
     input.detach();
@@ -19,11 +21,9 @@ Controller::Controller(string _username, SafeQueue<Message> *_sendMessage, SafeQ
 
 void Controller::ParseUserInput()
 {
-    regex regex("(SEND|FOLLOW) (.+)");
+    regex regex("^(SEND|FOLLOW) (.+)");
     smatch match;
     string input;
-
-    sendMessage->push(Message("LOGIN",username, username));
 
     while (true)
     {
@@ -31,18 +31,18 @@ void Controller::ParseUserInput()
 
         if (regex_search(input, match, regex) == true)
         {
-            sendMessage->push(Message(match.str(1), match.str(2), username));
+            sendMessage->push(Message(match.str(1), match.str(2)));
         }
         else
         {
-            cout << "ERROR: Invalid command." << endl;
+            cout << "ERROR: invalid command" << endl;
         }
     }
 }
 
 void Controller::ParseServerMessage()
 {
-    regex regex("(SEND)##(.+)##(.+)");
+    regex regex("(.+)##(.+)##(.+)");
     smatch match;
 
     while (true)
@@ -51,12 +51,8 @@ void Controller::ParseServerMessage()
 
         if (regex_search(server_message, match, regex) == true)
         {
-            Message message = Message(match.str(1), match.str(2), match.str(3));
+            Message message = Message(match.str(1), match.str(2).substr(0, PAYLOAD_SIZE), match.str(3));
             printMessage->push(message);
-        }
-        else
-        {
-            cout << "ERROR: Invalid received message" << endl;
         }
     }
 }
