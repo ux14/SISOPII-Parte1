@@ -13,7 +13,7 @@
 
 #include <bits/stdc++.h>
 #include "socketUser.h"
-#include "login.h"
+#include "user_controller.h"
 
 #define PORT 4000
 
@@ -100,9 +100,9 @@ void *routine(void *arg)
 	string user = string(buffer);
 	cout << user << endl;
 	user = getMessage(user);
-	Login l(&sessions);
+	UserController userController(&sessions);
 
-	if (l.login(user))
+	if (userController.login(user))
 	{
 		//Atrelar socket ao usuário
 		//cout << sessions.size() << endl;
@@ -134,7 +134,7 @@ void *routine(void *arg)
 			}
 			else if (command == "FOLLOW")
 			{
-				cout << "Seguindo " << message << endl;
+				userController.follow(user, message);
 			}
 			else if (command == "LOGOUT")
 			{

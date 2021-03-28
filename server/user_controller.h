@@ -1,11 +1,11 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+#ifndef USER_CONTROLLER_H
+#define USER_CONTROLLER_H
 
 #include <bits/stdc++.h>
 
 using namespace std;
 
-class Login
+class UserController
 {
 private:
     vector<string> users;
@@ -13,9 +13,10 @@ private:
     int isLoggedIn(string username);
 
 public:
-    Login(vector<struct socketUser> *_sessions);
+    UserController(vector<struct socketUser> *_sessions);
     bool login(string username);
     bool userExists(string username);
+    bool follow(string user, string followed);
 };
 
 #endif

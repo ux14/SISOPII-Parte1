@@ -7,7 +7,7 @@
 using namespace std;
 
 void createUser(string username);
-void follow(string follower, string followed);
+void addFollower(string follower, string followed);
 vector<string> getUsers();
 vector<string> getFollowers(string username);
 

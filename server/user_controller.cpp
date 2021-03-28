@@ -1,20 +1,20 @@
 #include <bits/stdc++.h>
 #include "files.h"
-#include "login.h"
+#include "user_controller.h"
 #include "socketUser.h"
 
-Login::Login(vector<struct socketUser> * _sessions)
+UserController::UserController(vector<struct socketUser> *_sessions)
 {
     sessions = _sessions;
     users = getUsers();
 }
 
-int Login::isLoggedIn(string username)
+int UserController::isLoggedIn(string username)
 {
     int cont = 0;
     for (int i = 0; i < (*sessions).size(); i++)
     {
-        if ( (*sessions)[i].user == username)
+        if ((*sessions)[i].user == username)
         {
             cont++;
         }
@@ -22,12 +22,12 @@ int Login::isLoggedIn(string username)
     return cont;
 }
 
-bool Login::userExists(string username)
+bool UserController::userExists(string username)
 {
     return find(users.begin(), users.end(), username) != users.end();
 }
 
-bool Login::login(string username)
+bool UserController::login(string username)
 {
 
     if (userExists(username))
@@ -51,3 +51,15 @@ bool Login::login(string username)
     }
 }
 
+bool UserController::follow(string user, string followed)
+{
+    if (userExists(followed) && user != followed)
+    {
+        addFollower(user, followed);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

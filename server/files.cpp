@@ -18,7 +18,7 @@ void createUser(string username)
     fclose(followers_arq);
 }
 
-void follow(string follower, string followed)
+void addFollower(string follower, string followed)
 {
     string followersArqDir = "server/files/followers/" + followed + ".txt";
 
