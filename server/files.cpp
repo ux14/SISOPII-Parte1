@@ -6,24 +6,20 @@
 
 #define USERNAME_MAX_SIZE 30
 
-using namespace std;
+#include <mutex>
 
-Files::Files()
-{
-    sem_init(&rwUsers, 0, 1);
-    sem_init(&rwFollowers, 0, 1);
-    sem_init(&mutexFollowers, 0, 1);
-}
+using namespace std;
 
 void Files::createUser(string username)
 {
     FILE *users_arq, *followers_arq;
 
-    sem_wait(&rwUsers);
-    users_arq = fopen("server/files/users.txt", "at");
-    fprintf(users_arq, (username + '\n').c_str());
+    std::lock_guard<std::mutex> data_lock(rwUsers);
+
+    users_arq = fopen("server/files/users.txt", "a+");
+    fprintf(users_arq, "%s\n", username.c_str());
     fclose(users_arq);
-    sem_post(&rwUsers);
+
 }
 
 void Files::addFollower(string follower, string followed)
@@ -31,11 +27,11 @@ void Files::addFollower(string follower, string followed)
     string followersArqDir = "server/files/followers/" + followed + ".txt";
     FILE *arq;
 
-    sem_wait(&rwFollowers);
-    arq = fopen(followersArqDir.c_str(), "at");
-    fprintf(arq, (follower + '\n').c_str());
+    std::lock_guard<std::mutex> data_lock(rwFollowers);
+
+    arq = fopen(followersArqDir.c_str(), "a+");
+    fprintf(arq, "%s\n", follower.c_str());
     fclose(arq);
-    sem_post(&rwFollowers);
 }
 
 vector<string> Files::getUsers()
@@ -44,8 +40,9 @@ vector<string> Files::getUsers()
     char user[USERNAME_MAX_SIZE];
     FILE *arq;
 
-    sem_wait(&rwUsers);
-    arq = fopen("server/files/users.txt", "rt");
+    std::lock_guard<std::mutex> data_lock(rwUsers);
+
+    arq = fopen("server/files/users.txt", "r+");
     if (arq == NULL)
         return users;
 
@@ -55,7 +52,7 @@ vector<string> Files::getUsers()
         *remove(user, user + strlen(user), '\n') = '\0';
         users.push_back(user);
     }
-    sem_post(&rwUsers);
+
     fclose(arq);
     return users;
 }
@@ -67,27 +64,9 @@ vector<string> Files::getFollowers(string username)
     string followersArqDir = "server/files/followers/" + username + ".txt";
     FILE *arq;
 
-    sem_wait(&mutexFollowers);
-    followers_readers++;
-    if (followers_readers == 1)
-    {
-        sem_wait(&rwFollowers);
-    }
-    sem_post(&mutexFollowers);
+    std::lock_guard<std::mutex> data_lock(mutexFollowers);
 
-    arq = fopen(followersArqDir.c_str(), "rt");
-    if (arq == NULL)
-    {
-        sem_wait(&mutexFollowers);
-        followers_readers--;
-        if (followers_readers == 0)
-        {
-            sem_post(&rwFollowers);
-        }
-        sem_post(&mutexFollowers);
-
-        return followers;
-    }
+    arq = fopen(followersArqDir.c_str(), "r+");
 
     while (fgets(follower, USERNAME_MAX_SIZE, arq) != NULL)
     {
@@ -96,14 +75,6 @@ vector<string> Files::getFollowers(string username)
         followers.push_back(follower);
     }
     fclose(arq);
-
-    sem_wait(&mutexFollowers);
-    followers_readers--;
-    if (followers_readers == 0)
-    {
-        sem_post(&rwFollowers);
-    }
-    sem_post(&mutexFollowers);
 
     return followers;
 }
