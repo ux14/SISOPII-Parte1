@@ -63,3 +63,6 @@ bool UserController::follow(string user, string followed)
     }
 }
 
+vector<string> UserController::listFollowers(string username){
+    return filesAccess.getFollowers(username);
+}

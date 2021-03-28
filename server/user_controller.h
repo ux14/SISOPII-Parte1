@@ -19,6 +19,7 @@ public:
     bool login(string username);
     bool userExists(string username);
     bool follow(string user, string followed);
+    vector<string> listFollowers(string username);
 };
 
 #endif
