@@ -25,14 +25,14 @@ void read_job(int fd, user_t user, UserController *user_controller, Notification
 
 string getCommand(string message)
 {
-	int position = message.find("|");
+	int position = message.find("##");
 	return message.substr(0, position);
 }
 
 string getMessage(string message)
 {
-	int position = message.find("|");
-	return message.substr(position + 1);
+	int position = message.find("##");
+	return message.substr(position + 2);
 }
 
 int main(int argc, char *argv[])
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 				string user = string(buffer);
 				cout << user << endl;
 				user = getMessage(user);
+				cout << user << endl;
 
 				if (user_controller.login(user))
 				{
