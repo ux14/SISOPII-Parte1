@@ -18,7 +18,7 @@
 #include "notification_controller.h"
 #include "input_controller.h"
 
-#define PORT 4001
+#define PORT 4000
 
 using namespace std;
 
