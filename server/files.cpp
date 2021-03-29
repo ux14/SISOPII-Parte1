@@ -12,7 +12,7 @@ using namespace std;
 
 void Files::createUser(string username)
 {
-    FILE *users_arq, *followers_arq;
+    FILE *users_arq;
 
     std::lock_guard<std::mutex> data_lock(rwUsers);
 
