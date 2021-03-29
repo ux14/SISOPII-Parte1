@@ -19,7 +19,7 @@ private:
     vector<struct socketUser> sessions;
     
     int isLoggedIn(string username);
-
+    bool isFollowing(string username, string followed);
     bool nonLockUserExists(string username);
 
 public:

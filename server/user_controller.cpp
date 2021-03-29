@@ -69,7 +69,7 @@ bool UserController::follow(string user, string followed)
 {
     std::lock_guard<std::mutex> users_lock(users_mutex);
 
-    if (nonLockUserExists(followed) && user != followed)
+    if (nonLockUserExists(followed) && user != followed && !isFollowing(user, followed))
     {
         filesAccess.addFollower(user, followed);
         return true;
@@ -90,9 +90,9 @@ void UserController::registerSession(socketUser usuario)
 void UserController::unregisterSession(socketUser usuario)
 {
     std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
-    for( auto it = sessions.begin(); it != sessions.end(); it++)
+    for (auto it = sessions.begin(); it != sessions.end(); it++)
     {
-        if( (*it).socketId == usuario.socketId && (*it).user == usuario.user)
+        if ((*it).socketId == usuario.socketId && (*it).user == usuario.user)
         {
             sessions.erase(it);
             break;
@@ -100,8 +100,15 @@ void UserController::unregisterSession(socketUser usuario)
     }
 }
 
-vector<string> UserController::listFollowers(string username){
+vector<string> UserController::listFollowers(string username)
+{
     return filesAccess.getFollowers(username);
+}
+
+bool UserController::isFollowing(string username, string followed)
+{
+    auto followers = filesAccess.getFollowers(followed);
+    return find(followers.begin(), followers.end(), username) != followers.end();
 }
 
 vector<int> UserController::getSessions(string username)
@@ -112,7 +119,7 @@ vector<int> UserController::getSessions(string username)
 
     for (auto i : sessions)
     {
-        if ( i.user == username )
+        if (i.user == username)
             ans.push_back(i.socketId);
     }
 
