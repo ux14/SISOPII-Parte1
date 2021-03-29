@@ -29,6 +29,7 @@ public:
     bool follow(string user, string followed);
     void registerSession(socketUser usuario);
     vector<string> listFollowers(string username);
+    vector<string> getUsers();
     vector<int> getSessions(string username);
 };
 

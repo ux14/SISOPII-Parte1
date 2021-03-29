@@ -8,6 +8,12 @@ UserController::UserController()
     users = filesAccess.getUsers();
 }
 
+vector<string> UserController::getUsers()
+{
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+    return users;
+}
+
 int UserController::isLoggedIn(string username)
 {
     std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
