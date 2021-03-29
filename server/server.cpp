@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		printf("ERROR on binding\n");
 
-	listen(sockfd, 5);
+	listen(sockfd, 25);
 
 	clilen = sizeof(struct sockaddr_in);
 
