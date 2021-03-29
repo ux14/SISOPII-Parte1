@@ -28,6 +28,7 @@ public:
     bool userExists(string username);
     bool follow(string user, string followed);
     void registerSession(socketUser usuario);
+    void unregisterSession(socketUser usuario);
     vector<string> listFollowers(string username);
     vector<string> getUsers();
     vector<int> getSessions(string username);

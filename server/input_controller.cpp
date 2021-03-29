@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <bits/stdc++.h>
+#include "socketUser.h"
 #include "input_controller.h"
 #include "user_controller.h"
 #include "notification_controller.h"
@@ -25,12 +26,12 @@ string InputController::getMessage(string message)
 void InputController::read_job(int sockfd, string user)
 {
     char buffer[256];
-    bzero(buffer, 256);
 
     int n;
 
     while (1)
     {
+        bzero(buffer, 256);
         /* read from the socket */
         n = read(sockfd, buffer, 256);
         if (n <= 0)
@@ -59,6 +60,11 @@ void InputController::read_job(int sockfd, string user)
         }
         else if (command == "LOGOUT")
         {
+            socketUser s;
+            s.socketId = sockfd;
+            s.user = user;
+
+            user_controller->unregisterSession(s);
             close(sockfd);
             break;
         }

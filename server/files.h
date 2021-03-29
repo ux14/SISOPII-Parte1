@@ -16,6 +16,8 @@ private:
     int followers_readers = 0;
 
 public:
+    
+
     void createUser(string username);
     void addFollower(string follower, string followed);
     vector<string> getUsers();

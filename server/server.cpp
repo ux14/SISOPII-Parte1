@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	struct sockaddr_in serv_addr, cli_addr;
 
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-		printf("ERROR opening socket");
+		printf("ERROR opening socket\n");
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	bzero(&(serv_addr.sin_zero), 8);
 
 	if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-		printf("ERROR on binding");
+		printf("ERROR on binding\n");
 
 	listen(sockfd, 5);
 
@@ -46,7 +46,14 @@ int main(int argc, char *argv[])
 	UserController user_controller;
 	NotificationController notification_controller(&user_controller);
 	InputController input_controller(&user_controller, &notification_controller);
-	
+
+	// para todos users já registrados, começar consumer thread
+	for ( auto u : user_controller.getUsers() )
+	{
+		std::thread consumer(&NotificationController::consumerThread,&notification_controller,u);
+		consumer.detach();
+	}
+
 	std::thread producer(&NotificationController::producerThread,&notification_controller);
 	producer.detach();
 
@@ -54,7 +61,7 @@ int main(int argc, char *argv[])
 	{
 
 		if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen)) == -1)
-			printf("ERROR on accept");
+			printf("ERROR on accept\n");
 		else
 		{
 				int n;
@@ -64,11 +71,23 @@ int main(int argc, char *argv[])
 
 				//Receber dados login
 				n = read(newsockfd, buffer, 256);
+				if(n <= 0)
+				{
+					if(n < 0)
+						printf("ERROR on read\n");
+					else
+						printf("No login attempt\n");
+					
+					close(newsockfd);
+					continue;
+				}
+				
 				string user = string(buffer);
 				cout << user << endl;
 				user = input_controller.getMessage(user);
 				cout << user << endl;
-
+				
+				// apenas começa uma consumer se o usuário não existir
 				if (!user_controller.userExists(user))
 				{
 					std::thread consumer(&NotificationController::consumerThread,&notification_controller,user);
@@ -89,6 +108,9 @@ int main(int argc, char *argv[])
 				else
 				{
 					//logout por ter mais de 2 sessões
+					string error = "ERROR##User has hit session limit##" + user;
+					n = write(newsockfd, error.c_str(), error.size());
+					close(newsockfd);
 				}
 		}
 	}

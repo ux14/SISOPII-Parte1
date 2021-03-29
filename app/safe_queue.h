@@ -19,7 +19,9 @@ public:
     T pop()
     {
         unique_lock<mutex> lock(mtx);
-        cv.wait(lock, [&] { return !q.empty(); });
+    
+        if( q.empty() )
+            cv.wait(lock, [&] { return !q.empty(); });
 
         T value = q.front();
         q.pop();

@@ -71,7 +71,7 @@ bool UserController::follow(string user, string followed)
 
     if (nonLockUserExists(followed) && user != followed)
     {
-       filesAccess.addFollower(user, followed);
+        filesAccess.addFollower(user, followed);
         return true;
     }
     else
@@ -85,6 +85,19 @@ void UserController::registerSession(socketUser usuario)
     std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
 
     sessions.push_back(usuario);
+}
+
+void UserController::unregisterSession(socketUser usuario)
+{
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+    for( auto it = sessions.begin(); it != sessions.end(); it++)
+    {
+        if( (*it).socketId == usuario.socketId && (*it).user == usuario.user)
+        {
+            sessions.erase(it);
+            break;
+        }
+    }
 }
 
 vector<string> UserController::listFollowers(string username){
