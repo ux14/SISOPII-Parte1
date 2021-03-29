@@ -20,7 +20,7 @@ private:
     
     int isLoggedIn(string username);
 
-    bool nonLockUserExists(string username)
+    bool nonLockUserExists(string username);
 
 public:
     UserController();
