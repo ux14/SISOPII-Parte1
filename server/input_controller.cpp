@@ -20,7 +20,18 @@ string InputController::getCommand(string message)
 string InputController::getMessage(string message)
 {
     int position = message.find("##");
-    return message.substr(position + 2);
+    if (getCommand(message) == "FOLLOW")
+    {
+        return message.substr(position + 2 + 1);
+    }
+    else if (getCommand(message) == "LOGOUT")
+    {
+        return "";
+    }
+    else
+    {
+        return message.substr(position + 2);
+    }
 }
 
 void InputController::read_job(int sockfd, string user)
@@ -56,7 +67,12 @@ void InputController::read_job(int sockfd, string user)
         }
         else if (command == "FOLLOW")
         {
-            user_controller->follow(user, message);
+            string error = user_controller->follow(user, message);
+            if (error.size() > 0)
+            {
+                error = "ERROR##" + error + "##" + user;
+                n = write(sockfd, error.c_str(), error.size());
+            }
         }
         else if (command == "LOGOUT")
         {

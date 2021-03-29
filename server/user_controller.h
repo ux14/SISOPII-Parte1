@@ -19,14 +19,14 @@ private:
     vector<struct socketUser> sessions;
     
     int isLoggedIn(string username);
-
+    bool isFollowing(string username, string followed);
     bool nonLockUserExists(string username);
 
 public:
     UserController();
     bool login(string username);
     bool userExists(string username);
-    bool follow(string user, string followed);
+    string follow(string user, string followed);
     void registerSession(socketUser usuario);
     void unregisterSession(socketUser usuario);
     vector<string> listFollowers(string username);
