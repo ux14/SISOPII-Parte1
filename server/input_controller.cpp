@@ -20,7 +20,18 @@ string InputController::getCommand(string message)
 string InputController::getMessage(string message)
 {
     int position = message.find("##");
-    return message.substr(position + 2);
+    if (getCommand(message) == "FOLLOW")
+    {
+        return message.substr(position + 2 + 1);
+    }
+    else if (getCommand(message) == "LOGOUT")
+    {
+        return "";
+    }
+    else
+    {
+        return message.substr(position + 2);
+    }
 }
 
 void InputController::read_job(int sockfd, string user)
