@@ -69,6 +69,12 @@ int main(int argc, char *argv[])
 				user = input_controller.getMessage(user);
 				cout << user << endl;
 
+				if (!user_controller.userExists(user))
+				{
+					std::thread consumer(&NotificationController::consumerThread,&notification_controller,user);
+					consumer.detach();
+				}
+
 				if (user_controller.login(user))
 				{
 					std::thread reader(&InputController::read_job,&input_controller,newsockfd,user);
@@ -79,9 +85,6 @@ int main(int argc, char *argv[])
 					usuario.user = user;
 
 					user_controller.registerSession(usuario);
-
-					std::thread consumer(&NotificationController::consumerThread,&notification_controller,user);
-					consumer.detach();
 				}
 				else
 				{
