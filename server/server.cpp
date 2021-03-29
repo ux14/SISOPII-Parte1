@@ -146,7 +146,7 @@ void read_job(int sockfd, user_t user, UserController *user_controller, Notifica
 			close(sockfd);
 			break;
 		}
-
 		printf("Here is the message: %s\n", buffer);
+		bzero(buffer, 256);
 	}
 }
