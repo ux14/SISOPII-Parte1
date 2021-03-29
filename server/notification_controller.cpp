@@ -135,6 +135,7 @@ void NotificationController::consumerThread(user_t user)
 
             break;
         }
+        bzero(noti.msg, 256);
     }
 }
 
@@ -147,6 +148,7 @@ void NotificationController::producerThread()
     while(1)
     {
         this->produce(user,noti);
+        bzero(noti.msg, 256);
 
         p = this->producerQueue.pop();
         user = p.first;
