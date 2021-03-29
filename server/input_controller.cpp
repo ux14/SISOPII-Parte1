@@ -54,7 +54,8 @@ void InputController::read_job(int sockfd, string user)
         }
 
         string command = getCommand(string(buffer));
-        string message = getMessage(string(buffer));
+        string message = "";
+        message = getMessage(string(buffer));
 
         cout << "comando: " << command << ' ' << "mensagem: " << message << '\n';
         if (command == "SEND")

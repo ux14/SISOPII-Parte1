@@ -126,6 +126,7 @@ void NotificationController::consumerThread(user_t user)
                 printf("ERROR in write to socket %d user %s", fd, user.c_str());
             }
         }
+        bzero(noti.msg, 256);
     }
 }
 
@@ -138,6 +139,7 @@ void NotificationController::producerThread()
     while(1)
     {
         this->produce(user,noti);
+        bzero(noti.msg, 256);
 
         p = this->producerQueue.pop();
         user = p.first;
