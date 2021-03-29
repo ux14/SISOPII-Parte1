@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
+#include <signal.h>
 #include <errno.h>
 #include <thread>
 #include <pthread.h>
@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
 
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 		printf("ERROR opening socket\n");
+
+	int option = 1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
