@@ -23,8 +23,14 @@ int UserController::isLoggedIn(string username)
     return cont;
 }
 
+bool UserController::nonLockUserExists(string username)
+{
+    return find(users.begin(), users.end(), username) != users.end();
+}
+
 bool UserController::userExists(string username)
 {
+    std::lock_guard<std::mutex> users_lock(users_mutex);
     return find(users.begin(), users.end(), username) != users.end();
 }
 
@@ -32,7 +38,7 @@ bool UserController::login(string username)
 {
     std::lock_guard<std::mutex> users_lock(users_mutex);
 
-    if (userExists(username))
+    if (nonLockUserExists(username))
     {
         if (isLoggedIn(username) >= 2)
         {
@@ -57,7 +63,7 @@ bool UserController::follow(string user, string followed)
 {
     std::lock_guard<std::mutex> users_lock(users_mutex);
 
-    if (userExists(followed) && user != followed)
+    if (nonLockUserExists(followed) && user != followed)
     {
        filesAccess.addFollower(user, followed);
         return true;
