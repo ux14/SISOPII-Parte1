@@ -117,14 +117,23 @@ void NotificationController::consumerThread(user_t user)
 
         string s = string("SEND##") + string(noti.msg) + string("##") + src_user;
 
-        // achar sockets/sessões do usuário u e mandar a notificação
-        for(auto fd : this->user_controller->getSessions(user))
+        while(1)
         {
-            int n = write(fd, s.c_str(), s.size());
-            if(n < 0)
+            // achar sockets/sessões do usuário u e mandar a notificação
+            auto sessions = this->user_controller->getSessions(user);
+            if(sessions.size() == 0)
+                continue;
+
+            for(auto fd : this->user_controller->getSessions(user))
             {
-                printf("ERROR in write to socket %d user %s", fd, user.c_str());
+                int n = write(fd, s.c_str(), s.size());
+                if(n < 0)
+                {
+                    printf("ERROR in write to socket %d user %s", fd, user.c_str());
+                }
             }
+
+            break;
         }
     }
 }
