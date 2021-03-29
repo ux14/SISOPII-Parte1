@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 					//logout por ter mais de 2 sessões
 					string error = "ERROR##User has hit session limit##" + user;
 					n = write(newsockfd, error.c_str(), error.size());
+					sleep(2);
 					close(newsockfd);
 				}
 		}

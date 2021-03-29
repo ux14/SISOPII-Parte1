@@ -56,7 +56,12 @@ void InputController::read_job(int sockfd, string user)
         }
         else if (command == "FOLLOW")
         {
-            user_controller->follow(user, message);
+            string error = user_controller->follow(user, message);
+            if (error.size() > 0)
+            {
+                error = "ERROR##" + error + "##" + user;
+                n = write(sockfd, error.c_str(), error.size());
+            }
         }
         else if (command == "LOGOUT")
         {

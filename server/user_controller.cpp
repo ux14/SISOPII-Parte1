@@ -65,19 +65,25 @@ bool UserController::login(string username)
     }
 }
 
-bool UserController::follow(string user, string followed)
+string UserController::follow(string user, string followed)
 {
     std::lock_guard<std::mutex> users_lock(users_mutex);
 
-    if (nonLockUserExists(followed) && user != followed && !isFollowing(user, followed))
+    if (!nonLockUserExists(followed))
     {
-        filesAccess.addFollower(user, followed);
-        return true;
+        return followed + " you are trying to follow dosen't exist";
     }
-    else
+    else if (user == followed)
     {
-        return false;
+        return "You can't follow yourself";
     }
+    else if (isFollowing(user, followed))
+    {
+        return "You already follow " + followed;
+    }
+
+    filesAccess.addFollower(user, followed);
+    return "";
 }
 
 void UserController::registerSession(socketUser usuario)
