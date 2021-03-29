@@ -10,6 +10,8 @@ UserController::UserController()
 
 int UserController::isLoggedIn(string username)
 {
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
     int cont = 0;
     for (int i = 0; i < (int)sessions.size(); i++)
     {
@@ -28,6 +30,8 @@ bool UserController::userExists(string username)
 
 bool UserController::login(string username)
 {
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+
     if (userExists(username))
     {
         if (isLoggedIn(username) >= 2)
@@ -51,6 +55,8 @@ bool UserController::login(string username)
 
 bool UserController::follow(string user, string followed)
 {
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+
     if (userExists(followed) && user != followed)
     {
        filesAccess.addFollower(user, followed);
@@ -64,9 +70,26 @@ bool UserController::follow(string user, string followed)
 
 void UserController::registerSession(socketUser usuario)
 {
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
     sessions.push_back(usuario);
 }
 
 vector<string> UserController::listFollowers(string username){
     return filesAccess.getFollowers(username);
+}
+
+vector<int> UserController::getSessions(string username)
+{
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
+    vector<int> ans;
+
+    for (auto i : sessions)
+    {
+        if ( i.user == username )
+            ans.push_back(i.socketId);
+    }
+
+    return ans;
 }
