@@ -6,4 +6,12 @@ app:
 server:
 	g++ -std=c++11 ./server/*.cpp -g -o ./bin/server -Wall -pthread
 
-.PHONY: app server
+clean:
+	rm -f ./bin/app
+	rm -f ./bin/server
+
+clean-files:
+	rm -f ./server/files/users.txt
+	rm -f ./server/files/followers/*.txt
+
+.PHONY: app server clean clean-files

@@ -8,8 +8,16 @@ UserController::UserController()
     users = filesAccess.getUsers();
 }
 
+vector<string> UserController::getUsers()
+{
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+    return users;
+}
+
 int UserController::isLoggedIn(string username)
 {
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
     int cont = 0;
     for (int i = 0; i < (int)sessions.size(); i++)
     {
@@ -21,14 +29,22 @@ int UserController::isLoggedIn(string username)
     return cont;
 }
 
+bool UserController::nonLockUserExists(string username)
+{
+    return find(users.begin(), users.end(), username) != users.end();
+}
+
 bool UserController::userExists(string username)
 {
+    std::lock_guard<std::mutex> users_lock(users_mutex);
     return find(users.begin(), users.end(), username) != users.end();
 }
 
 bool UserController::login(string username)
 {
-    if (userExists(username))
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+
+    if (nonLockUserExists(username))
     {
         if (isLoggedIn(username) >= 2)
         {
@@ -51,9 +67,11 @@ bool UserController::login(string username)
 
 bool UserController::follow(string user, string followed)
 {
-    if (userExists(followed) && user != followed)
+    std::lock_guard<std::mutex> users_lock(users_mutex);
+
+    if (nonLockUserExists(followed) && user != followed)
     {
-       filesAccess.addFollower(user, followed);
+        filesAccess.addFollower(user, followed);
         return true;
     }
     else
@@ -64,9 +82,39 @@ bool UserController::follow(string user, string followed)
 
 void UserController::registerSession(socketUser usuario)
 {
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
     sessions.push_back(usuario);
+}
+
+void UserController::unregisterSession(socketUser usuario)
+{
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+    for( auto it = sessions.begin(); it != sessions.end(); it++)
+    {
+        if( (*it).socketId == usuario.socketId && (*it).user == usuario.user)
+        {
+            sessions.erase(it);
+            break;
+        }
+    }
 }
 
 vector<string> UserController::listFollowers(string username){
     return filesAccess.getFollowers(username);
+}
+
+vector<int> UserController::getSessions(string username)
+{
+    std::lock_guard<std::mutex> sessions_lock(sessions_mutex);
+
+    vector<int> ans;
+
+    for (auto i : sessions)
+    {
+        if ( i.user == username )
+            ans.push_back(i.socketId);
+    }
+
+    return ans;
 }

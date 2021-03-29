@@ -12,13 +12,17 @@ using namespace std;
 
 void Files::createUser(string username)
 {
-    FILE *users_arq;
+    FILE *users_arq, *followers_arq;
 
-    std::lock_guard<std::mutex> data_lock(rwUsers);
+    std::lock_guard<std::mutex> user_lock(rwUsers);
 
     users_arq = fopen("server/files/users.txt", "a+");
     fprintf(users_arq, "%s\n", username.c_str());
     fclose(users_arq);
+
+    std::lock_guard<std::mutex> follower_lock(rwFollowers);
+    followers_arq = fopen( ("server/files/followers/" +  username + ".txt").c_str(), "w+");
+    fclose(followers_arq);
 
 }
 
@@ -27,11 +31,15 @@ void Files::addFollower(string follower, string followed)
     string followersArqDir = "server/files/followers/" + followed + ".txt";
     FILE *arq;
 
-    std::lock_guard<std::mutex> data_lock(rwFollowers);
+    auto followers = getFollowers(followed);
+    if( find(followers.begin(),followers.end(),follower) == followers.end() )
+    {
+        std::lock_guard<std::mutex> data_lock(rwFollowers);
 
-    arq = fopen(followersArqDir.c_str(), "a+");
-    fprintf(arq, "%s\n", follower.c_str());
-    fclose(arq);
+        arq = fopen(followersArqDir.c_str(), "a+");
+        fprintf(arq, "%s\n", follower.c_str());
+        fclose(arq);
+    }
 }
 
 vector<string> Files::getUsers()

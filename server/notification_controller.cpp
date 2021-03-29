@@ -1,5 +1,12 @@
-#include <cstdint>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <string>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 #include <map>
 #include <set>
@@ -53,7 +60,8 @@ std::pair<user_t,notification> NotificationController::consume(user_t user)
         auto it = data[u].received_notifications->begin();
         if( (it = data[u].received_notifications->find(nid)) != data[u].received_notifications->end() )
         {
-            n = *it;
+            n.first = u;
+            n.second = (*it).second;
 
             if( --(it->second.pending) == 0)
             {
@@ -71,13 +79,9 @@ void NotificationController::produce(user_t user, notification noti)
 {
         static uint32_t id = 0;
 
-        std::lock_guard<std::mutex> data_lock( data_mutex );
-
-        // TODO
         // achar todos os seguidores de 'user' aqui
         auto followers = this->user_controller->listFollowers(user); //= ?
 
-        // TODO
         // inserir na fila de pendentes de 'user'
 
         noti.id = id++;
@@ -85,15 +89,14 @@ void NotificationController::produce(user_t user, notification noti)
         noti.timestamp = (uint32_t) time(nullptr);
 
         this->lockReceivedList(user);
-        if( data[user].received_notifications->find(id) == data[user].received_notifications->end() )
-            data[user].received_notifications = std::make_shared<std::map<notification_id,notification>>();
-        data[user].received_notifications->at(id) = noti;
+        data[user].received_notifications->insert( std::make_pair(noti.id,noti));
         this->unlockReceivedList(user);
 
         for(auto it = followers.begin(); it != followers.end(); it++)
-        {
+        {            
             user_t follower = *it;
 
+            std::lock_guard<std::mutex> data_lock( data_mutex );
             // TODO
             // colocar na fila de mensagens pendentes ao envio do n-ésimo follower
 
@@ -112,10 +115,17 @@ void NotificationController::consumerThread(user_t user)
         auto src_user = pair_user_notification.first;
         auto noti = pair_user_notification.second;
 
-        // TODO
+        string s = string("SEND##") + string(noti.msg) + string("##") + src_user;
+
         // achar sockets/sessões do usuário u e mandar a notificação
-        
-        // sendToSessions(user, noti) ou alguma coisa assim
+        for(auto fd : this->user_controller->getSessions(user))
+        {
+            int n = write(fd, s.c_str(), s.size());
+            if(n < 0)
+            {
+                printf("ERROR in write to socket %d user %s", fd, user.c_str());
+            }
+        }
     }
 }
 
