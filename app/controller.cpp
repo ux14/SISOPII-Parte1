@@ -21,7 +21,7 @@ Controller::Controller(string _username, SafeQueue<Message> *_sendMessage, SafeQ
 
 void Controller::ParseUserInput()
 {
-    regex regex("^(SEND|FOLLOW) (.+)");
+    regex regex("^(SEND|FOLLOW) ([^ ].*)");
     smatch match;
     string input;
 
@@ -31,7 +31,14 @@ void Controller::ParseUserInput()
 
         if (regex_search(input, match, regex) == true)
         {
-            sendMessage->push(Message(match.str(1), match.str(2)));
+            if (match.str(1) == "FOLLOW" && match.str(2).at(0) != '@')
+            {
+                cout << "ERROR: invalid command" << endl;
+            }
+            else
+            {
+                sendMessage->push(Message(match.str(1), match.str(2)));
+            }
         }
         else
         {
