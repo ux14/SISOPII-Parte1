@@ -61,6 +61,7 @@ void InputController::read_job(int sockfd, string user)
         if (command == "SEND")
         {
             notification n;
+            bzero(n.msg,256);
             std::copy(message.begin(), message.end(), n.msg);
             n.length = message.length();
             //Acontence algo com as mensagens
